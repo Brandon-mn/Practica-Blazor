@@ -1,0 +1,57 @@
+﻿@page "/boleto/{TemplateId:int}"
+@using MudBlazorWebApp1.Services
+@using MudBlazorWebApp1.Models
+@inject TicketTemplateService TicketTemplateService
+@using MudBlazor
+
+<MudContainer>
+    <MudText Typo="Typo.h4" Class="mb-4">Diseño de Boleto: @template?.Name</MudText>
+    @if (template == null || datosEvento == null)
+    {
+        <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+    }
+    else
+    {
+        <div style="position: relative;
+                    width: @(template.AnchoBoleto)px;
+                    height: @(template.AltoBoleto)px;
+                    border: 2px solid black;
+                    background-color: white;">
+            @foreach (var elemento in template.Elements)
+            {
+                <div style="position: absolute;
+                            left: @(elemento.PosX)px;
+                            top: @(elemento.PosY)px;">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <MudText Style="color: black; font-weight: bold;">@elemento.Content</MudText>
+                        @if (elemento.Content == "Nombre")
+                        {
+                            <MudText Style="font-weight: normal;">@datosEvento.Nombre</MudText>
+                        }
+                        @if (elemento.Content == "Codigo Asiento")
+                        {
+                            <MudText Style="font-weight: normal;">@datosEvento.CodigoAsiento</MudText>
+                        }
+                        @if (elemento.Content == "temporada")
+                        {
+                            <MudText Style="font-weight: normal;">@datosEvento.Temporada</MudText>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</MudContainer>
+
+@code {
+    [Parameter]
+    public int TemplateId { get; set; }
+    private TicketTemplate template;
+    private DatosEvento datosEvento;
+
+    protected override async Task OnInitializedAsync()
+    {
+        template = await TicketTemplateService.GetTemplateByIdAsync(TemplateId);
+        datosEvento = await TicketTemplateService.GetDatosEventoByTemplateIdAsync(1);
+    }
+}

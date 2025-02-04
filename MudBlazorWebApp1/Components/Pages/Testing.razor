@@ -1,0 +1,158 @@
+﻿@* @page "/a"
+@using MudBlazor
+@inject IJSRuntime JSRuntime
+
+<MudGrid>
+    <MudItem xs="4">
+        <MudPaper Elevation="2" Class="p-4">
+            <MudTextField @bind-Value="TicketWidth" Label="Anchura (px)" Variant="Variant.Outlined" Type="InputType.Number" />
+            <MudTextField @bind-Value="TicketHeight" Label="Altura (px)" Variant="Variant.Outlined" Type="InputType.Number" />
+            <MudTextField Value="@PosX.ToString()" Label="Posición X" Variant="Variant.Outlined" ReadOnly="true" />
+            <MudTextField Value="@PosY.ToString()" Label="Posición Y" Variant="Variant.Outlined" ReadOnly="true" />
+        </MudPaper>
+    </MudItem>
+    <MudItem xs="8">
+        <MudPaper Elevation="2"
+                  Class="custom-ticket-container"
+                  Style="@($"width: {TicketWidth}px; height: {TicketHeight}px;")"
+                  id="dropzone">
+            <MudPaper Elevation="1"
+                      Class="draggable-element"
+                      id="draggable"
+                      Style="@($"top: {PosY}px; left: {PosX}px;")">
+                Nombre
+            </MudPaper>
+        </MudPaper>
+    </MudItem>
+</MudGrid>
+
+<style>
+    .custom-ticket-container {
+        position: relative;
+        border: 1px solid #ccc;
+        background-color: #f7f7f7;
+        overflow: hidden;
+    }
+
+    .draggable-element {
+        position: absolute;
+        width: 100px;
+        height: 30px;
+        background-color: lightblue;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        cursor: grab;
+    }
+
+        .draggable-element:active {
+            cursor: grabbing;
+        }
+</style>
+
+@code {
+    private int _ticketWidth = 500;
+    private int _ticketHeight = 550;
+    private int _posX = 50;
+    private int _posY = 50;
+
+    public int TicketWidth
+    {
+        get => _ticketWidth;
+        set
+        {
+            _ticketWidth = value;
+            StateHasChanged();
+        }
+    }
+
+    public int TicketHeight
+    {
+        get => _ticketHeight;
+        set
+        {
+            _ticketHeight = value;
+            StateHasChanged();
+        }
+    }
+
+    public int PosX
+    {
+        get => _posX;
+        set
+        {
+            _posX = value;
+            InvokeAsync(StateHasChanged);
+        }
+    }
+
+    public int PosY
+    {
+        get => _posY;
+        set
+        {
+            _posY = value;
+            InvokeAsync(StateHasChanged);
+        }
+    }
+
+    [JSInvokable]
+    public async Task UpdateCoordinates(int x, int y)
+    {
+        PosX = x;
+        PosY = y;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await JSRuntime.InvokeVoidAsync("initializeDraggableElements", DotNetObjectReference.Create(this));
+        }
+    }
+}
+
+
+            function initializeDraggableElements(dotNetHelper) {
+    document.querySelectorAll('.draggable-element').forEach(element => {
+        element.onmousedown = function (event) {
+            event.preventDefault(); // Prevenir el comportamiento predeterminado
+
+            const dropzone = document.getElementById('dropzone');
+            const dropzoneRect = dropzone.getBoundingClientRect();
+            let shiftX = event.clientX - element.getBoundingClientRect().left;
+            let shiftY = event.clientY - element.getBoundingClientRect().top;
+
+            function moveAt(pageX, pageY) {
+                const rect = element.getBoundingClientRect();
+                let newLeft = pageX - shiftX - dropzoneRect.left;
+                let newTop = pageY - shiftY - dropzoneRect.top;
+
+                // Limitar el movimiento dentro del dropzone
+                newLeft = Math.max(0, Math.min(newLeft, dropzoneRect.width - rect.width));
+                newTop = Math.max(0, Math.min(newTop, dropzoneRect.height - rect.height));
+
+                element.style.left = `${newLeft}px`;
+                element.style.top = `${newTop}px`;
+
+                // Actualizar las coordenadas en Blazor
+                dotNetHelper.invokeMethodAsync('UpdateCoordinates', Math.round(newLeft), Math.round(newTop));
+            }
+
+            function onMouseMove(event) {
+                moveAt(event.pageX, event.pageY);
+            }
+
+            function onMouseUp() {
+                document.removeEventListener('mousemove', onMouseMove);
+                document.removeEventListener('mouseup', onMouseUp);
+            }
+
+            document.addEventListener('mousemove', onMouseMove);
+            document.addEventListener('mouseup', onMouseUp);
+        };
+
+        element.ondragstart = () => false;
+    });
+} *@

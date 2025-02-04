@@ -1,0 +1,261 @@
+﻿@page "/p"
+@using MudBlazor
+@using MudBlazorWebApp1.Models
+@using MudBlazorWebApp1.Services
+@inject TicketTemplateService TicketTemplateService
+@inject IJSRuntime JSRuntime
+
+<MudPaper Class="pa-4">
+    <MudGrid>
+        <MudItem xs="12">
+            <MudText Typo="Typo.h5">Diseño de Plantilla de Ticket</MudText>
+        </MudItem>
+
+        <MudItem xs="12" sm="6">
+            <MudTextField @bind-Value="_template.Name" Label="Nombre del boleto" Required="true" />
+        </MudItem>
+        <MudItem xs="12" sm="6">
+            <MudTextField @bind-Value="_template.Description" Label="Descripción del boleto" />
+        </MudItem>
+        <MudItem xs="12" sm="6">
+            <MudNumericField @bind-Value="_template.AnchoBoleto" Label="Ancho del boleto" Min="100" />
+        </MudItem>
+        <MudItem xs="12" sm="6">
+            <MudNumericField @bind-Value="_template.AltoBoleto" Label="Alto del boleto" Min="100" />
+        </MudItem>
+
+        <MudItem xs="12">
+            <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="SaveTemplate"
+                       StartIcon="@Icons.Material.Filled.Save">
+                Guardar Template
+            </MudButton>
+        </MudItem>
+    </MudGrid>
+</MudPaper>
+
+<MudPaper Class="pa-4 mt-4">
+    <div id="ticket-container" style="background-color:white; border: 1px solid black; width: @(_template.AnchoBoleto)px; height: @(_template.AltoBoleto)px; position: relative; margin: 20px auto;">
+        @foreach (var element in _template.Elements)
+        {
+            <div class="draggable-element"
+                 data-element-id="@element.ElementType"
+                 style="@(GetElementStyle(element))"
+                 @onclick="() => SelectElement(element)">
+                <span>@element.Content</span>
+            </div>
+        }
+    </div>
+
+    @if (_selectedElement != null)
+    {
+        <MudGrid Class="mt-4">
+            <MudItem xs="12">
+                <MudText Typo="Typo.h6">Propiedades del elemento: @_selectedElement.ElementType</MudText>
+            </MudItem>
+            <MudItem xs="12" sm="6" md="3">
+                <MudNumericField @bind-Value="_selectedElement.PosX" Label="Coordenada X" />
+            </MudItem>
+            <MudItem xs="12" sm="6" md="3">
+                <MudNumericField @bind-Value="_selectedElement.PosY" Label="Coordenada Y" />
+            </MudItem>
+            <MudItem xs="12" sm="6" md="3">
+                <MudNumericField @bind-Value="_selectedElement.Width" Label="Ancho" />
+            </MudItem>
+            <MudItem xs="12" sm="6" md="3">
+                <MudNumericField @bind-Value="_selectedElement.Height" Label="Alto" />
+            </MudItem>
+            <MudItem xs="12">
+                <MudTextField @bind-Value="_selectedElement.Content" Label="Contenido" />
+            </MudItem>
+            <MudItem xs="12">
+                <MudButton Color="Color.Secondary"
+                           Variant="Variant.Filled"
+                           OnClick="UpdateElement"
+                           StartIcon="@Icons.Material.Filled.Update">
+                    Actualizar Elemento
+                </MudButton>
+            </MudItem>
+        </MudGrid>
+    }
+</MudPaper>
+
+<style>
+    .draggable-element {
+        cursor: grab;
+        background-color: rgba(255, 255, 255, 0.9);
+        padding: 4px;
+        user-select: none;
+        position: fixed;
+    }
+
+        .draggable-element:active {
+            cursor: grabbing;
+        }
+
+        .draggable-element:hover {
+            border: 2px solid #1976d2 !important;
+        }
+</style>
+
+@code {
+    private TicketTemplate _template = new()
+    {
+            CreatedDate = DateTime.Now,
+            UserId = "CURRENT_USER",
+            Name = "",
+            Description = "",
+            AnchoBoleto = 300,
+            AltoBoleto = 200,
+            Elements = new List<TicketElement>
+            {
+                new() {
+                    ElementType = "Nombre",
+                    Content = "Nombre",
+                    PosX = 10,
+                    PosY = 10,
+                    Width = 100,
+                    Height = 20,
+                    FontSize = 12,
+                    FontFamily = "Arial",
+                    FontColor = "#000000",
+                    IsBold = false,
+                    IsItalic = false,
+                    Rotation = 0,
+                    ZIndex = 0,
+                    IsVisible = true
+                },
+                new() {
+                    ElementType = "Codigo Asiento",
+                    Content = "Codigo Asiento",
+                    PosX = 120,
+                    PosY = 10,
+                    Width = 50,
+                    Height = 50,
+                    FontSize = 12,
+                    FontFamily = "Arial",
+                    FontColor = "#000000",
+                    IsBold = false,
+                    IsItalic = false,
+                    Rotation = 0,
+                    ZIndex = 1,
+                    IsVisible = true
+                },
+                new() {
+                    ElementType = "temporada",
+                    Content = "temporada",
+                    PosX = 180,
+                    PosY = 10,
+                    Width = 100,
+                    Height = 20,
+                    FontSize = 12,
+                    FontFamily = "Arial",
+                    FontColor = "#000000",
+                    IsBold = false,
+                    IsItalic = false,
+                    Rotation = 0,
+                    ZIndex = 2,
+                    IsVisible = true
+                }
+            }
+    };
+
+    private TicketElement? _selectedElement;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await JSRuntime.InvokeVoidAsync("initializeDraggableElements", DotNetObjectReference.Create(this));
+        }
+    }
+
+    [JSInvokable]
+    public async Task UpdateElementPosition(string elementType, int x, int y)
+    {
+        var element = _template.Elements.FirstOrDefault(e => e.ElementType == elementType);
+        if (element != null)
+        {
+            element.PosX = x;
+            element.PosY = y;
+            StateHasChanged();
+        }
+    }
+
+    private async Task SaveTemplate()
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(_template.Name))
+            {
+                await JSRuntime.InvokeVoidAsync("alert", "El nombre del boleto es obligatorio.");
+                return;
+            }
+
+            if (_template.AnchoBoleto < 100 || _template.AltoBoleto < 100)
+            {
+                await JSRuntime.InvokeVoidAsync("alert", "Las dimensiones del boleto deben ser al menos de 100px.");
+                return;
+            }
+
+            foreach (var element in _template.Elements)
+            {
+                element.TicketTemplateId = 0;
+                element.Id = 0;
+            }
+
+            var savedTemplate = await TicketTemplateService.CreateTemplateAsync(_template);
+            _template = savedTemplate;
+            await JSRuntime.InvokeVoidAsync("alert", "Plantilla guardada correctamente");
+        }
+        catch (Exception ex)
+        {
+            await JSRuntime.InvokeVoidAsync("alert", $"Error al guardar la plantilla: {ex.Message}");
+        }
+    }
+    private void SelectElement(TicketElement element)
+    {
+        _selectedElement = element; 
+        StateHasChanged();
+    }
+
+    private async Task UpdateElement()
+    {
+        if (_selectedElement != null)
+        {
+            try
+            {
+                await TicketTemplateService.UpdateElementAsync(_selectedElement);
+                await JSRuntime.InvokeVoidAsync("Swal.fire", new
+                {
+                    title = "¡Éxito!",
+                    text = "Elemento actualizado correctamente",
+                    icon = "success"
+                });
+            }
+            catch (Exception ex)
+            {
+                await JSRuntime.InvokeVoidAsync("Swal.fire", new
+                {
+                    title = "Error",
+                    text = $"Error al actualizar el elemento: {ex.Message}",
+                    icon = "error"
+                });
+            }
+        }
+    }
+
+    private string GetElementStyle(TicketElement element)
+    {
+        return $"position: absolute; left: {element.PosX}px; top: {element.PosY}px; " +
+               $"width: {element.Width}px; height: {element.Height}px; " +
+               $"border: 1px solid #ccc; " +
+               $"font-family: {element.FontFamily}; " +
+               $"font-size: {element.FontSize}px; " +
+               $"color: {element.FontColor}; " +
+               $"font-weight: {(element.IsBold ? "bold" : "normal")}; " +
+               $"font-style: {(element.IsItalic ? "italic" : "normal")}; " +
+               $"transform: rotate({element.Rotation}deg); " +
+               $"z-index: {element.ZIndex}; " +
+               $"display: {(element.IsVisible ? "block" : "none")};";
+    }
+}

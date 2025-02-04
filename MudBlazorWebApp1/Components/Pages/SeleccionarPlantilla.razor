@@ -1,0 +1,54 @@
+﻿@page "/seleccionar"
+@using MudBlazorWebApp1.Services
+@using MudBlazorWebApp1.Models
+@inject NavigationManager NavigationManager
+@inject TicketTemplateService TicketTemplateService
+@using MudBlazor
+
+<h3>Seleccionar Plantilla</h3>
+
+@if (templates == null)
+{
+    <MudProgressCircular Color="Color.Primary"  Indeterminate="true" />
+}
+else
+{
+    <MudGrid>
+        @foreach (var template in templates)
+        {
+            <MudItem xs="4">
+                <MudCard>
+                    <MudCardHeader>
+                        <CardHeaderContent>
+                            <MudText Typo="Typo.h6">@template.Name</MudText>
+                        </CardHeaderContent>
+                    </MudCardHeader>
+                    <MudCardContent>
+                        <MudText>@template.Description</MudText>
+                        <MudText>Elementos: @template.Elements?.Count</MudText>
+                    </MudCardContent>
+                    <MudCardActions>
+                        <MudButton Variant="Variant.Filled" Color="Color.Primary"
+                                   @onclick="() => SelectTemplate(template)">
+                            Seleccionar
+                        </MudButton>
+                    </MudCardActions>
+                </MudCard>
+            </MudItem>
+        }
+    </MudGrid>
+}
+
+@code {
+    private List<TicketTemplate> templates;
+
+    protected override async Task OnInitializedAsync()
+    {
+        templates = await TicketTemplateService.GetAllTemplatesAsync();
+    }
+
+    private void SelectTemplate(TicketTemplate template)
+    {
+        NavigationManager.NavigateTo($"/boleto/{template.Id}");
+    }
+}

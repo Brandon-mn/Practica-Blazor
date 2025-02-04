@@ -1,0 +1,54 @@
+﻿@* @page "/T"
+@using MudBlazorWebApp1.Models
+@using MudBlazorWebApp1.Services
+@using MudBlazor
+@inject TicketTemplateService TicketTemplateService
+
+<MudContainer>
+    <MudText Typo="Typo.h3">Lista de Plantillas</MudText>
+
+    <!-- MudBlazor Table -->
+    <MudTable Items="@ticketTemplates" Loading="@loading" Hover="true">
+        <ToolBarContent>
+            <MudText Typo="Typo.h5">Plantillas de Boletos</MudText>
+        </ToolBarContent>
+
+        <HeaderContent>
+            <MudTh>ID</MudTh>
+            <MudTh>Font Size</MudTh>
+            <MudTh>Font Color</MudTh>
+        </HeaderContent>
+
+        <RowTemplate>
+            <MudTd>@context.Id</MudTd>
+            <MudTd>@context.FontSize</MudTd>
+            <MudTd>@context.FontColor</MudTd>
+        </RowTemplate>
+
+        <NoRecordsContent>
+            <MudText Typo="Typo.subtitle1">No hay plantillas disponibles.</MudText>
+        </NoRecordsContent>
+    </MudTable>
+</MudContainer>
+
+@code {
+    private List<TicketTemplate> ticketTemplates;
+    private bool loading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            ticketTemplates = TicketTemplateService.GetAllTemplates();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error: {ex.Message}");
+        }
+        finally
+        {
+            loading = false;
+        }
+    }
+}
+ *@
