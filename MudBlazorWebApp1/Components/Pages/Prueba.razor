@@ -18,10 +18,10 @@
             <MudTextField @bind-Value="_template.Description" Label="Descripción del boleto" />
         </MudItem>
         <MudItem xs="12" sm="6">
-            <MudNumericField @bind-Value="_template.AnchoBoleto" Label="Ancho del boleto" Min="100" />
+            <MudNumericField @bind-Value="_template.AnchoBoleto" Label="Ancho del boleto (pt)" Min="100" />
         </MudItem>
         <MudItem xs="12" sm="6">
-            <MudNumericField @bind-Value="_template.AltoBoleto" Label="Alto del boleto" Min="100" />
+            <MudNumericField @bind-Value="_template.AltoBoleto" Label="Alto del boleto (pt)" Min="100" />
         </MudItem>
 
         <MudItem xs="12">
@@ -34,7 +34,7 @@
 </MudPaper>
 
 <MudPaper Class="pa-4 mt-4">
-    <div id="ticket-container" style="background-color:white; border: 1px solid black; width: @(_template.AnchoBoleto)px; height: @(_template.AltoBoleto)px; position: relative; margin: 20px auto;">
+    <div id="ticket-container" style="background-color:white; border: 1px solid black; width: @(_template.AnchoBoleto)pt; height: @(_template.AltoBoleto)pt; position: relative; margin: 20px auto;">
         @foreach (var element in _template.Elements)
         {
             <div class="draggable-element"
@@ -53,16 +53,16 @@
                 <MudText Typo="Typo.h6">Propiedades del elemento: @_selectedElement.ElementType</MudText>
             </MudItem>
             <MudItem xs="12" sm="6" md="3">
-                <MudNumericField @bind-Value="_selectedElement.PosX" Label="Coordenada X" />
+                <MudNumericField @bind-Value="_selectedElement.PosX" Label="Coordenada X (pt)" />
             </MudItem>
             <MudItem xs="12" sm="6" md="3">
-                <MudNumericField @bind-Value="_selectedElement.PosY" Label="Coordenada Y" />
+                <MudNumericField @bind-Value="_selectedElement.PosY" Label="Coordenada Y (pt)" />
             </MudItem>
             <MudItem xs="12" sm="6" md="3">
-                <MudNumericField @bind-Value="_selectedElement.Width" Label="Ancho" />
+                <MudNumericField @bind-Value="_selectedElement.Width" Label="Ancho (pt)" />
             </MudItem>
             <MudItem xs="12" sm="6" md="3">
-                <MudNumericField @bind-Value="_selectedElement.Height" Label="Alto" />
+                <MudNumericField @bind-Value="_selectedElement.Height" Label="Alto (pt)" />
             </MudItem>
             <MudItem xs="12">
                 <MudTextField @bind-Value="_selectedElement.Content" Label="Contenido" />
@@ -83,7 +83,7 @@
     .draggable-element {
         cursor: grab;
         background-color: rgba(255, 255, 255, 0.9);
-        padding: 4px;
+        padding: 4pt;
         user-select: none;
         position: fixed;
     }
@@ -93,13 +93,13 @@
         }
 
         .draggable-element:hover {
-            border: 2px solid #1976d2 !important;
+            border: 2pt solid #1976d2 !important;
         }
 </style>
 
 @code {
     private TicketTemplate _template = new()
-    {
+        {
             CreatedDate = DateTime.Now,
             UserId = "CURRENT_USER",
             Name = "",
@@ -107,57 +107,57 @@
             AnchoBoleto = 300,
             AltoBoleto = 200,
             Elements = new List<TicketElement>
-            {
-                new() {
-                    ElementType = "Nombre",
-                    Content = "Nombre",
-                    PosX = 10,
-                    PosY = 10,
-                    Width = 100,
-                    Height = 20,
-                    FontSize = 12,
-                    FontFamily = "Arial",
-                    FontColor = "#000000",
-                    IsBold = false,
-                    IsItalic = false,
-                    Rotation = 0,
-                    ZIndex = 0,
-                    IsVisible = true
-                },
-                new() {
-                    ElementType = "Codigo Asiento",
-                    Content = "Codigo Asiento",
-                    PosX = 120,
-                    PosY = 10,
-                    Width = 50,
-                    Height = 50,
-                    FontSize = 12,
-                    FontFamily = "Arial",
-                    FontColor = "#000000",
-                    IsBold = false,
-                    IsItalic = false,
-                    Rotation = 0,
-                    ZIndex = 1,
-                    IsVisible = true
-                },
-                new() {
-                    ElementType = "temporada",
-                    Content = "temporada",
-                    PosX = 180,
-                    PosY = 10,
-                    Width = 100,
-                    Height = 20,
-                    FontSize = 12,
-                    FontFamily = "Arial",
-                    FontColor = "#000000",
-                    IsBold = false,
-                    IsItalic = false,
-                    Rotation = 0,
-                    ZIndex = 2,
-                    IsVisible = true
-                }
+        {
+            new() {
+                ElementType = "Nombre",
+                Content = "Nombre",
+                PosX = 10,
+                PosY = 10,
+                Width = 100,
+                Height = 20,
+                FontSize = 12,
+                FontFamily = "Arial",
+                FontColor = "#000000",
+                IsBold = false,
+                IsItalic = false,
+                Rotation = 0,
+                ZIndex = 0,
+                IsVisible = true
+            },
+            new() {
+                ElementType = "Codigo Asiento",
+                Content = "Codigo Asiento",
+                PosX = 120,
+                PosY = 10,
+                Width = 50,
+                Height = 50,
+                FontSize = 12,
+                FontFamily = "Arial",
+                FontColor = "#000000",
+                IsBold = false,
+                IsItalic = false,
+                Rotation = 0,
+                ZIndex = 1,
+                IsVisible = true
+            },
+            new() {
+                ElementType = "temporada",
+                Content = "temporada",
+                PosX = 180,
+                PosY = 10,
+                Width = 100,
+                Height = 20,
+                FontSize = 12,
+                FontFamily = "Arial",
+                FontColor = "#000000",
+                IsBold = false,
+                IsItalic = false,
+                Rotation = 0,
+                ZIndex = 2,
+                IsVisible = true
             }
-    };
+        }
+        };
 
     private TicketElement? _selectedElement;
 
@@ -193,7 +193,7 @@
 
             if (_template.AnchoBoleto < 100 || _template.AltoBoleto < 100)
             {
-                await JSRuntime.InvokeVoidAsync("alert", "Las dimensiones del boleto deben ser al menos de 100px.");
+                await JSRuntime.InvokeVoidAsync("alert", "Las dimensiones del boleto deben ser al menos de 100pt.");
                 return;
             }
 
@@ -212,9 +212,10 @@
             await JSRuntime.InvokeVoidAsync("alert", $"Error al guardar la plantilla: {ex.Message}");
         }
     }
+
     private void SelectElement(TicketElement element)
     {
-        _selectedElement = element; 
+        _selectedElement = element;
         StateHasChanged();
     }
 
@@ -246,11 +247,11 @@
 
     private string GetElementStyle(TicketElement element)
     {
-        return $"position: absolute; left: {element.PosX}px; top: {element.PosY}px; " +
-               $"width: {element.Width}px; height: {element.Height}px; " +
-               $"border: 1px solid #ccc; " +
+        return $"position: absolute; left: {element.PosX}pt; top: {element.PosY}pt; " +
+               $"width: {element.Width}pt; height: {element.Height}pt; " +
+               $"border: 1pt solid #ccc; " +
                $"font-family: {element.FontFamily}; " +
-               $"font-size: {element.FontSize}px; " +
+               $"font-size: {element.FontSize}pt; " +
                $"color: {element.FontColor}; " +
                $"font-weight: {(element.IsBold ? "bold" : "normal")}; " +
                $"font-style: {(element.IsItalic ? "italic" : "normal")}; " +

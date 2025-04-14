@@ -1,4 +1,5 @@
-﻿function initializeDraggableElements(dotNetHelper) {
+﻿// Tu función original, intacta
+function initializeDraggableElements(dotNetHelper) {
     const container = document.getElementById('ticket-container');
 
     document.querySelectorAll('.draggable-element').forEach(element => {
@@ -40,3 +41,45 @@
         element.ondragstart = () => false;
     });
 }
+
+// Función adicional para mostrar PDF generado con iText
+window.abrirPdf = (base64) => {
+    const byteCharacters = atob(base64);
+    const byteNumbers = new Array(byteCharacters.length);
+    for (let i = 0; i < byteCharacters.length; i++) {
+        byteNumbers[i] = byteCharacters.charCodeAt(i);
+    }
+    const byteArray = new Uint8Array(byteNumbers);
+    const blob = new Blob([byteArray], { type: "application/pdf" });
+    const url = URL.createObjectURL(blob);
+    window.open(url);
+};
+
+window.printPdf = (base64Pdf) => {
+    return new Promise((resolve, reject) => {
+        try {
+            var blob = new Blob([new Uint8Array(atob(base64Pdf).split("").map(function (c) { return c.charCodeAt(0) }))], { type: "application/pdf" });
+            var url = URL.createObjectURL(blob);
+            let windowOptions = "width=800,height=600,scrollbars=yes,location=no,toolbar=no,status=no,menubar=no,resizable=yes";
+            let pdfWindow = window.open(url, "TicketWindow", windowOptions);
+
+            pdfWindow.onload = () => {
+                pdfWindow.print();
+            };
+
+            pdfWindow.onafterprint = () => {
+                if (pdfWindow) {
+                    pdfWindow.close();
+                    resolve(true); // Confirmamos que se cerró después de imprimir
+                }
+            };
+
+            pdfWindow.oncancel = () => {
+                reject(false); // Si cancelan la impresión, devolvemos FALSE
+            };
+        }
+        catch (err) {
+            reject(false); // Si hay error devolvemos FALSE
+        }
+    });
+};

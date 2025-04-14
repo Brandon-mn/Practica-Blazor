@@ -2,28 +2,36 @@
 @using MudBlazorWebApp1.Services
 @using MudBlazorWebApp1.Models
 @inject TicketTemplateService TicketTemplateService
+@inject IJSRuntime JS
 @using MudBlazor
 
 <MudContainer>
     <MudText Typo="Typo.h4" Class="mb-4">Diseño de Boleto: @template?.Name</MudText>
+
     @if (template == null || datosEvento == null)
     {
         <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
     }
     else
     {
-        <div style="position: relative;
+        <div id="boleto"
+             style="position: relative;
                     width: @(template.AnchoBoleto)px;
                     height: @(template.AltoBoleto)px;
                     border: 2px solid black;
                     background-color: white;">
+
             @foreach (var elemento in template.Elements)
             {
-                <div style="position: absolute;
+                <div class="draggable"
+                     style="position: absolute;
                             left: @(elemento.PosX)px;
-                            top: @(elemento.PosY)px;">
+                            top: @(elemento.PosY)px;
+                            cursor: move;">
+
                     <div style="display: flex; align-items: center; gap: 10px;">
                         <MudText Style="color: black; font-weight: bold;">@elemento.Content</MudText>
+
                         @if (elemento.Content == "Nombre")
                         {
                             <MudText Style="font-weight: normal;">@datosEvento.Nombre</MudText>
@@ -43,15 +51,52 @@
     }
 </MudContainer>
 
+<MudButton OnClick="GenerarPDF" Variant="Variant.Filled" Color="Color.Primary">
+    Imprimir Boleto
+</MudButton>
+
 @code {
     [Parameter]
     public int TemplateId { get; set; }
+
     private TicketTemplate template;
     private DatosEvento datosEvento;
 
     protected override async Task OnInitializedAsync()
     {
         template = await TicketTemplateService.GetTemplateByIdAsync(TemplateId);
-        datosEvento = await TicketTemplateService.GetDatosEventoByTemplateIdAsync(1);
+        datosEvento = await TicketTemplateService.GetDatosEventoByTemplateIdAsync(1); // Puedes cambiar el ID si es dinámico
     }
+
+    private async Task GenerarPDF()
+    {
+        var bytes = PdfHelper.GenerateBoletoFromTemplate(template, datosEvento);
+        var base64 = Convert.ToBase64String(bytes);
+        await JS.InvokeVoidAsync("printPdf", base64);
+    }
+
+    // private async Task PrintSelectedTickets()
+    // {
+    //     // Obtener el nombre de usuario actual
+    //     string username = await GetCurrentUsername();
+
+    //     var SelectedTickets = SaleOrder.OrderDetails!.Where(x => x.Selected && x.IdPrintStatus != null).ToList();
+    //     if (SelectedTickets != null)
+    //     {
+    //         foreach (var ticket in SelectedTickets)
+    //         {
+    //             var access = await _logistics.GetAccessByTicket((int)ticket.IdClient!, ticket.IdSaleOrderDetail);
+    //             ticket.QRCode = access.First().QRCode;
+    //         }
+    //         string eventName = SaleOrder.Event?.EventName ?? "EVENTO";
+    //         DateTime? date = SaleOrder.Event?.StartDate;
+    //         string descriptionevent = SaleOrder.Event?.Description ?? string.Empty;
+    //         var base64Pdf = PDFHelper.GeneratePdf(SelectedTickets, eventName, username, date ?? DateTime.MinValue, descriptionevent);
+    //         await StatusSelectedTickets();
+
+    //         printed = await js.InvokeAsync<bool>("printPdf", Convert.ToBase64String(base64Pdf));
+
+
+    //     }
+    // }
 }
